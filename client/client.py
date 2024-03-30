@@ -1,17 +1,35 @@
 import socket
+import os
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def main():
+    try:
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-client.connect(("25.38.213.87", 5050))
+        client.connect(("localhost", 5050))
 
-namefile = str(input("Arquivo >> "))
+        # Receber a lista de arquivos como uma string
+        file_names_str = client.recv(1024).decode()
+        file_names = file_names_str.split(',')
+        print("Lista de arquivos recebida:", file_names)
 
-client.send(namefile.encode())
+        # Selecionar um arquivo
+        selected_file_name = input("Digite o nome do arquivo que deseja enviar: ")
+        if selected_file_name == '0':
+            return
+        client.send(selected_file_name.encode())
 
-with open(namefile, 'wb') as file:
-    while True:
-        data = client.recv(1000000)
-        if data:
-            file.write(data)
-        else:
-            break
+        # Receber e salvar o conteúdo do arquivo selecionado
+        file_content_str = client.recv(1024).decode()
+        local = f'C:/Users/{os.getlogin()}/Downloads/{file_names_str}'
+        with open(local, 'w') as file:
+            file.write(file_content_str)
+
+        print("Arquivo recebido e salvo em: " + local)
+
+        client.close()
+    except Exception as e:
+        print(e)
+        
+main()
+    
+input("Pressione Enter para fechar.")
