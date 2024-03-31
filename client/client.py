@@ -1,11 +1,16 @@
 import socket
 import os
+import json
+
+with open('config.json', 'r') as file:
+    dados = json.load(file)
+    print(dados['ip'])
 
 def main():
     try:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        client.connect(("localhost", 5050))
+        client.connect((dados['ip'], 5050))
 
         # Receber a lista de arquivos como uma string
         file_names_str = client.recv(1024).decode()
@@ -15,8 +20,12 @@ def main():
         # Selecionar um arquivo
         selected_file_name = input("Digite o nome do arquivo que deseja enviar: ")
         if selected_file_name == '0':
+            client.send(selected_file_name.encode())
             return
-        client.send(selected_file_name.encode())
+        try:
+            client.send(selected_file_name.encode())
+        except Exception as e:
+            print(e)
 
         # Receber e salvar o conteúdo do arquivo selecionado
         file_content_str = client.recv(1024).decode()
